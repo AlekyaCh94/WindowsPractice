@@ -17,8 +17,21 @@ namespace GridviewExample
         public Login()
         {
             InitializeComponent();
-        }
+            btnLogin.Enabled = false;
 
+        }
+        private void textUserName_TextChanged(object sender, EventArgs e)
+        {
+            textUserName.TextChanged += textUserName_TextChanged;
+            btnLogin.Visible = !string.IsNullOrWhiteSpace(textUserName.Text) && !string.IsNullOrWhiteSpace(textPassword.Text);
+        }
+        private void textPassword_TextChanged(object sender, EventArgs e)
+        {
+
+
+            textPassword.TextChanged += textPassword_TextChanged;
+            btnLogin.Visible = !string.IsNullOrWhiteSpace(textUserName.Text) && !string.IsNullOrWhiteSpace(textPassword.Text);
+        }
         private void lnkNewUser_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             Form f = new NewUser();
@@ -35,37 +48,48 @@ namespace GridviewExample
         private void btnLogin_Click(object sender, EventArgs e)
         {
 
-            using (SqlConnection connection = new SqlConnection(ConfigurationManager.ConnectionStrings["TrainingDbConn"].ConnectionString))   // Step-2  Memory Managemnt
+            if (String.IsNullOrEmpty(textUserName.Text) || String.IsNullOrEmpty(textPassword.Text))
             {
-                string query = "SELECT COUNT(*) FROM NewUser WHERE Username = @Username AND Password = @Password";
-                SqlCommand command = new SqlCommand(query, connection);
-                command.Parameters.AddWithValue("@Username", textUserName.Text.Trim());
-                command.Parameters.AddWithValue("@Password", textPassword.Text.Trim());
+                MessageBox.Show("Please enter both username and password.");
+                return;
 
-                try
+            }
+
+            {
+                using (SqlConnection connection = new SqlConnection(ConfigurationManager.ConnectionStrings["TrainingDbConn"].ConnectionString))   // Step-2  Memory Managemnt
                 {
-                    connection.Open();
-                    int count = (int)command.ExecuteScalar();
-                    if (count > 0)
+                    string query = "SELECT COUNT(*) FROM NewUser WHERE Username = @Username AND Password = @Password";
+                    SqlCommand command = new SqlCommand(query, connection);
+                    command.Parameters.AddWithValue("@Username", textUserName.Text.Trim());
+                    command.Parameters.AddWithValue("@Password", textPassword.Text.Trim());
+
+                    try
                     {
-                        MessageBox.Show("Login successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        //  successful login
-                        Form f = new ChangePassword();
-                        f.Show();
-                        this.Hide();
+                        connection.Open();
+                        int count = (int)command.ExecuteScalar();
+                        if (count > 0)
+                        {
+                            MessageBox.Show("Login successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            //  successful login
+                            Form f = new ChangePassword();
+                            f.Show();
+                            this.Hide();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Invalid username or password.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        MessageBox.Show("Invalid username or password.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("An error occurred: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        connection.Close();
                     }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("An error occurred: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+
+
         }
     }
 }
-
 

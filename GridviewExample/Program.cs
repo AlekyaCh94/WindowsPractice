@@ -16,7 +16,7 @@ namespace GridviewExample
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new GridviewWithMultipleTables());
+            Application.Run(new Login());
            
         }
     }
